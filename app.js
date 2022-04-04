@@ -1,27 +1,55 @@
 let width = 1000, height = 600;
+const [WIDTH, HEIGHT] = [1000, 600]
 
-let svg = d3.select("svg")
-    .attr("viewBox", "0 0 " + width + " " + height)
+const state = {}
 
-// Load external data and boot
-Promise.all([d3.json("data/sgmap.json"), d3.csv("data/population2021.csv")]).then(data => {
+function setupSvg() {
+    state['svg'] = d3.select("svg")
+        .attr("viewBox", "0 0 " + WIDTH + " " + HEIGHT)
+}
 
-console.log(data[0]);
-console.log(data[1]);
+async function loadData() {
+    const [mapData, popData] = await Promise.all([d3.json("data/sgmap.json"), d3.csv("data/population2021.csv")])
+    state['mapData'] = mapData
+    state['subzoneToPopMap'] = {}
+    for (const { Subzone, Population } of popData) {
+        state['subzoneToPopMap'][Subzone.toLowerCase()] = +Population
+    }
 
-// Map and projection
-var projection = d3.geoMercator()
-    .center([103.851959, 1.290270])
-    .fitExtent([[20, 20], [980, 580]], data[0]);
+    console.log('mapData', mapData);
+    console.log('popData', popData);
+    console.log('subzoneToPopMap', state['subzoneToPopMap']);
+}
 
-let geopath = d3.geoPath().projection(projection);
+function subzoneToPop(subzone) {
+    return state['subzoneToPopMap'][subzone.toLowerCase()] || -1
+}
 
-svg.append("g")
-    .attr("id", "districts")
-    .selectAll("path")
-    .data(data[0].features)
-    .enter()
-    .append("path")
-    .attr("d", geopath)
-    .attr("fill", "black");
-})
+async function main() {
+    setupSvg()
+    await loadData()
+
+    // Map and projection
+    var projection = d3.geoMercator()
+        .center([103.851959, 1.290270])
+        .fitExtent([[20, 20], [980, 580]], state['mapData']);
+
+    let geopath = d3.geoPath().projection(projection);
+
+    const vals = Object.values(state.subzoneToPopMap)
+    const scale = d3.scaleSequential(d3.interpolatePiYG).domain([d3.min(vals), d3.max(vals)])
+
+    state['svg'].append("g")
+        .attr("id", "districts")
+        .selectAll("path")
+        .data(state['mapData'].features)
+        .enter()
+        .append("path")
+        .attr("d", geopath)
+        .attr("fill", f => {
+            const val = subzoneToPop(f.properties['Subzone Name'])
+            return scale(val)
+        });
+}
+
+main()
