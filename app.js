@@ -21,8 +21,8 @@ async function loadData() {
     console.log('subzoneToPopMap', state['subzoneToPopMap']);
 }
 
-function subzoneToPop(subzone) {
-    return state['subzoneToPopMap'][subzone.toLowerCase()] || -1
+function featureToPop(feature) {
+    return state['subzoneToPopMap'][feature.properties['Subzone Name'].toLowerCase()] || -1
 }
 
 async function main() {
@@ -38,6 +38,7 @@ async function main() {
 
     const vals = Object.values(state.subzoneToPopMap)
     const scale = d3.scaleSequential(d3.interpolatePiYG).domain([d3.min(vals), d3.max(vals)])
+    const tooltip = d3.select('#tooltip')
 
     state['svg'].append("g")
         .attr("id", "districts")
@@ -47,9 +48,22 @@ async function main() {
         .append("path")
         .attr("d", geopath)
         .attr("fill", f => {
-            const val = subzoneToPop(f.properties['Subzone Name'])
+            const val = featureToPop(f)
             return scale(val)
+        })
+        .on("mouseover", function(e, f) {		
+            const pop = featureToPop(f)
+            tooltip
+                .style('opacity', 1)
+                .style("left", (e.pageX) + "px")		
+                .style("top", (e.pageY - 28) + "px")
+                .text(`Population: ${pop == -1 ? "(unknown)" : pop}`)
+            })					
+        .tooltip("mouseout", function() {		
+            tooltip.style('opacity', 0)
         });
+
+        ;
 }
 
 main()
