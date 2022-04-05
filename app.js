@@ -1,11 +1,14 @@
-let width = 1000, height = 600;
-const [WIDTH, HEIGHT] = [1000, 600]
+const [WIDTH, HEIGHT] = [1200, 700]
 
 const state = {}
 
 function setupSvg() {
     state['svg'] = d3.select("svg")
         .attr("viewBox", "0 0 " + WIDTH + " " + HEIGHT)
+        .attr('width', WIDTH)
+        .attr('height', HEIGHT)
+    
+    state['legend'] = state['svg'].append('g').classed('legend-container', true)
 }
 
 async function loadData() {
@@ -49,6 +52,7 @@ async function main() {
         .attr("d", geopath)
         .attr("fill", f => {
             const val = featureToPop(f)
+            if (val == -1) return 'black'
             return scale(val)
         })
         .on("mouseover", function(e, f) {		
@@ -59,11 +63,11 @@ async function main() {
                 .style("top", (e.pageY - 28) + "px")
                 .text(`Population: ${pop == -1 ? "(unknown)" : pop}`)
             })					
-        .tooltip("mouseout", function() {		
+        .on("mouseout", function() {		
             tooltip.style('opacity', 0)
         });
 
-        ;
+
 }
 
 main()
