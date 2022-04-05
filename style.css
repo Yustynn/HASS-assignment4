@@ -4,7 +4,15 @@
 
 h1 {
     text-align: center;
-    color: rgb(60, 60, 60);
+    color: rgb(214, 214, 214);
+}
+
+body {
+    background-color: #222230;
+}
+
+body, html {
+    height: 100%;
 }
 
 #tooltip {
