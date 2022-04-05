@@ -67,6 +67,31 @@ async function main() {
             tooltip.style('opacity', 0)
         });
 
+    const points = []
+    const NUM_POINTS = 10
+    const [domainMin, domainMax] = scale.domain()
+    for (let i = 0; i < 10; i++) {
+        const point = domainMin + (domainMax - domainMin) / (NUM_POINTS - 1) * i
+        points.push(point)
+
+    }
+    
+    const legendPoint = state['legend'].selectAll('g')
+        .data(points)
+        .join('g')
+    
+    const R = 10
+    const Y_START = 30
+    legendPoint.append('circle')
+        .attr('cx', WIDTH - 200)
+        .attr('cy', (_, idx) => Y_START + idx * 30)
+        .attr('r', R)
+        .attr('fill', p => scale(p))
+    legendPoint.append('text')
+        .attr('x', WIDTH - 200 + R*3)
+        .attr('y', (_, idx) => Y_START + idx * 30 + R/2)
+        .text(p => Math.round(p))
+        .attr('fill', p => scale(p))
 
 }
 
